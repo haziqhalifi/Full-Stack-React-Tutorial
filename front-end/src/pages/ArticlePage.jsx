@@ -6,8 +6,8 @@ export default function ArticlePage() {
 
   const article = articles.find(a => a.name === name);
   return (<>
-    <h1>{article.title}</h1>
-    {article.content.map(p => <p key={p}>{p}</p>)}
+    <h1 className="mt-10 text-3xl font-bold text-slate-800 dark:text-white">{article.title}</h1>
+    {article.content.map((p, index) => <p key={index} className="mt-2 text-slate-600 dark:text-slate-300">{p}</p>)}
   </>
   )
 }
