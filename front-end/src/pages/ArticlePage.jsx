@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom'; //access the URL parameters of the current route.
 import articles from '../article-content';
 
 export default function ArticlePage() {

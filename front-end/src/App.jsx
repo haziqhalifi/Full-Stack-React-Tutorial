@@ -5,10 +5,12 @@ import AboutPage from "./pages/AboutPage";
 import ArticlesListPage from "./pages/ArticlesListPage";
 import ArticlePage from "./pages/ArticlePage";
 import Layout from "./Layout";
+import NotFoundPage from "./pages/NotFoundpage";
 
 const routes = [{
   path: '/',
-  element: <Layout />,
+  element: <Layout />, // Layout is a component that wraps all the pages
+  errorElement: <NotFoundPage />,
   children: [
     {
       path: '/',
