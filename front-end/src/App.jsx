@@ -20,7 +20,7 @@ const routes = [{
       path: '/articles',
       element: <ArticlesListPage />,
     }, {
-      path: '/articles/individual',
+      path: '/articles/:name', // catch all article name. E.g /articles/learn-react
       element: <ArticlePage />,
     }
   ]
