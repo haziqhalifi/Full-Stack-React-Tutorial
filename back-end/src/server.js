@@ -39,15 +39,39 @@ app.get('/api/articles/:name', async (req, res) => {
     res.json(article);
 });
 
+app.use(async function (req, res, next) {
+    const { authtoken } = req.headers;
+
+    if (authtoken) {
+        const user = await admin.auth().verifyIdToken(authtoken);
+        req.user = user;
+        next();
+    } else {
+        res.sendStatus(400);
+    }
+})
+
 app.post('/api/articles/:name/upvote', async (req, res) => {
     const { name } = req.params;
-    const updatedArticle = await db.collection('articles').findOneAndUpdate({ name }, {
-        $inc: { upvotes: 1 }
-    }, {
-        ReturnDocument: 'after',
-    })
+    const { uid } = req.user;
 
-    res.json(updatedArticle);
+    const article = await db.collection('article').findOne({ name });
+
+    const upvoteIds = article.upvoteIds || [];
+    const canUpvote = uid && !upvoteIds.includes(uid);
+
+    if (canUpvote) {
+        const updatedArticle = await db.collection('articles').findOneAndUpdate({ name }, {
+            $inc: { upvotes: 1 },
+            $push: { upvoteIds: uid },
+        }, {
+            ReturnDocument: 'after',
+        })
+
+        res.json(updatedArticle);
+    } else {
+        res.sendStatus(403);
+    }
 });
 
 app.post('/api/articles/:name/comments', async (req, res) => {
