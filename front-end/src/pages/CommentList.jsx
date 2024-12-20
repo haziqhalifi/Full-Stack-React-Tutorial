@@ -1,7 +1,7 @@
 export default function CommentList({ comments }) {
     return (
         <>
-            <h3 className="mt-4 text-2xl font-bold text-slate-800 dark:text-white">Comments:</h3>
+            <h3 className="mt-10 text-2xl font-bold text-slate-800 dark:text-white">Comments:</h3>
             {comments.map(comment => (
                 <div key={comment.text}>
                     <h4 className="mt-4 text-xl font-bold text-slate-800 dark:text-white">{comment.postedBy}</h4>
