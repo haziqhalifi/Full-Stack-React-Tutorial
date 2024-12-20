@@ -1,5 +1,5 @@
-import express from "express";
-import { MongoClient, ServerApiVersion } from 'mongodb'
+import express from 'express';
+import { MongoClient, ReturnDocument, ServerApiVersion } from 'mongodb';
 
 const articleInfo = [
     { name: 'learn-node', upvotes: 0, comments: [] },
@@ -11,21 +11,9 @@ const app = express();
 
 app.use(express.json());
 
-// app.get('/hello', function (req, res) {
-//     res.send('Hello!');
-// });
+let db;
 
-// app.get('/hello/:name', function (req, res) {
-//     res.send('Hello ' + req.params.name)
-// })
-
-// app.post('/hello', function (req, res) {
-//     res.send('Hello ' + req.body.name + ' from Post Endpoint')
-// });
-
-app.get('/api/articles/:name', async (req, res) => {
-    const { name } = req.params;
-
+async function connectToDB() {
     const uri = 'mongodb://127.0.0.1:27017';
 
     const client = new MongoClient(uri, {
@@ -36,50 +24,47 @@ app.get('/api/articles/:name', async (req, res) => {
         }
     });
 
-    try {
-        await client.connect();
-        const db = client.db('full-stack-react-db');
-        const article = await db.collection('articles').findOne({ name });
+    await client.connect();
+    db = client.db('full-stack-react-db');
+}
 
-        if (!article) {
-            return res.status(404).send('Article not found');
-        }
+app.get('/api/articles/:name', async (req, res) => {
+    const { name } = req.params;
 
-        res.json(article);
-    } catch (error) {
-        console.error('Error fetching article:', error);
-        res.status(500).send('Internal Server Error');
-    } finally {
-        await client.close();
-    }
-});
+    const article = await db.collection('articles').findOne({ name });
 
-app.post('/api/articles/:name/upvote', (req, res) => {
-    console.log(`Received request to upvote article: ${req.params.name}`);
-    const article = articleInfo.find(a => a.name === req.params.name);
-    if (!article) {
-        return res.status(404).send('Article not found');
-    }
-    article.upvotes += 1;
-
-    res.send('Success! The article ' + req.params.name + ' now has ' + article.upvotes + ' upvotes!')
     res.json(article);
 });
 
-app.post('/api/articles/:name/comments', (req, res) => {
-    const { name } = req.params.name;
+app.post('/api/articles/:name/upvote', async (req, res) => {
+    const { name } = req.params;
+    const updatedArticle = await db.collection('articles').findOneAndUpdate({ name }, {
+        $inc: { upvotes: 1 }
+    }, {
+        ReturnDocument: 'after',
+    })
+
+    res.json(updatedArticle);
+});
+
+app.post('/api/articles/:name/comments', async (req, res) => {
+    const { name } = req.params;
     const { postedBy, text } = req.body;
+    const newComment = { postedBy, text }
 
-    const article = articleInfo.find(a => a.name === req.params.name);
+    const updatedArticle = await db.collection('articles').findOneAndUpdate({ name }, {
+        $push: { comments: newComment }
+    }, { returnDocument: 'after' }
+    )
 
-    article.comments.push({
-        postedBy,
-        text
-    });
-
-    res.json(article);
-})
-
-app.listen(8000, function () {
-    console.log("Server is listening on port 8000");
+    res.json(updatedArticle);
 });
+
+async function start() {
+    await connectToDB();
+    app.listen(8000, function () {
+        console.log('Server is listening on port 8000');
+    });
+}
+
+start();
